@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dance Learning Platform</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0;}
+body,html{font-family:'Poppins',sans-serif;height:100%;overflow-x:hidden;}
+button{cursor:pointer; transition:0.3s;}
+button:hover{opacity:0.9;transform:translateY(-2px);}
+
+/* Common Page Styles */
+.page{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  display:none;color:#fff;overflow-y:auto;
+  transition:all 0.5s ease-in-out;
+}
+.page.active{display:block;animation:fadeIn 0.5s ease-in-out;}
+@keyframes fadeIn {
+  from {opacity:0;transform:translateY(20px);}
+  to {opacity:1;transform:translateY(0);}
+}
+
+.page-bg{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  object-fit:cover;z-index:-1;
+}
+
+/* Dark overlay for better text visibility */
+.page::before{
+  content:'';position:absolute;top:0;left:0;width:100%;height:100%;
+  background:rgba(0,0,0,0.5);z-index:0;
+}
+.page > *:not(.page-bg){position:relative;z-index:1;}
+
+/* First Page */
+#firstPage{
+  display:flex;justify-content:center;align-items:center;
+  flex-direction:column;text-align:center;
+}
+#firstPage .page-bg{opacity:0.9;}
+#firstPage h1{
+  font-size:4rem;text-shadow:3px 3px 15px rgba(0,0,0,0.9);
+  margin-bottom:40px;color:#fff;font-weight:700;
+}
+.top-right{position:absolute;top:20px;right:30px;z-index:10;}
+.top-right button{
+  background:linear-gradient(45deg,#ff5722,#ff7043);
+  color:#fff;border:none;padding:12px 25px;
+  margin-left:10px;border-radius:25px;font-size:1rem;
+  box-shadow:0 4px 15px rgba(255,87,34,0.3);
+  font-weight:600;
+}
+.top-right button:hover{
+  background:linear-gradient(45deg,#e64a19,#ff5722);
+  transform:translateY(-3px);
+  box-shadow:0 6px 20px rgba(255,87,34,0.4);
+}
+
+/* Modal */
+.modal{
+  display:none;position:fixed;top:0;left:0;width:100%;height:100%;
+  background:rgba(0,0,0,0.85);justify-content:center;align-items:center;
+  overflow:auto;z-index:1000;backdrop-filter:blur(5px);
+}
+.modal-content{
+  background:linear-gradient(135deg,#1a1a1a,#2d2d2d);
+  padding:30px;border-radius:20px;width:90%;
+  max-width:500px;color:#fff;position:relative;
+  box-shadow:0 10px 30px rgba(0,0,0,0.5);
+  border:1px solid rgba(255,255,255,0.1);
+}
+.modal-content h2{text-align:center;margin-bottom:20px;color:#ff5722;font-weight:600;}
+.modal-content input,.modal-content select{
+  width:100%;padding:12px;margin:10px 0;border-radius:10px;
+  border:1px solid rgba(255,255,255,0.2);
+  background:rgba(255,255,255,0.1);color:#fff;
+}
+.modal-content input::placeholder{color:rgba(255,255,255,0.8);}
+.modal-content select{color:#fff;}
+.modal-content select option{background:#2d2d2d;color:#fff;}
+.modal-content button{
+  width:100%;padding:15px;border:none;border-radius:10px;
+  background:linear-gradient(45deg,#2196f3,#21cbf3);
+  color:#fff;font-size:1.2rem;margin-top:15px;font-weight:600;
+}
+.modal-content button:hover{background:linear-gradient(45deg,#1976d2,#2196f3);}
+.close{
+  position:absolute;top:15px;right:20px;font-size:1.8rem;
+  cursor:pointer;color:#ff5722;font-weight:bold;
+}
+.forgot{
+  font-size:0.9rem;color:#ff9800;cursor:pointer;
+  float:right;margin-top:-10px;text-decoration:underline;
+}
+
+/* Navigation */
+.navbar{
+  position:absolute;top:15px;right:20px;z-index:10;
+}
+.navbar button{
+  margin-left:10px;
+  background:linear-gradient(45deg,#ff5722,#ff7043);
+  color:#fff;border:none;padding:10px 20px;border-radius:20px;
+  font-weight:600;box-shadow:0 3px 10px rgba(255,87,34,0.3);
+}
+.navbar button:hover{
+  background:linear-gradient(45deg,#e64a19,#ff5722);
+  transform:translateY(-2px);
+  box-shadow:0 5px 15px rgba(255,87,34,0.4);
+}
+
+/* Dance List Page */
+#dancePage{padding:20px;text-align:center;}
+#dancePage h1{
+  font-size:3rem;margin-bottom:30px;
+  text-shadow:3px 3px 10px rgba(0,0,0,0.9);
+  color:#fff;font-weight:700;
+}
+.dance-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+  gap:25px;max-width:1200px;margin:0 auto;
+}
+.dance-card{
+  background:linear-gradient(135deg,rgba(255,255,255,0.2),rgba(255,255,255,0.1));
+  backdrop-filter:blur(15px);border-radius:20px;padding:25px;
+  text-align:center;border:1px solid rgba(255,255,255,0.3);
+  transition:all 0.3s ease;box-shadow:0 8px 25px rgba(0,0,0,0.3);
+}
+.dance-card:hover{
+  background:linear-gradient(135deg,rgba(255,255,255,0.3),rgba(255,255,255,0.15));
+  transform:translateY(-8px);
+  box-shadow:0 15px 35px rgba(0,0,0,0.4);
+}
+.dance-card h3{margin-bottom:15px;font-size:1.4rem;color:#ff5722;font-weight:600;}
+.dance-card p{margin-bottom:20px;opacity:0.95;line-height:1.5;color:#fff;text-shadow:1px 1px 3px rgba(0,0,0,0.7);}
+.dance-card button{
+  background:linear-gradient(45deg,#4caf50,#66bb6a);
+  color:#fff;border:none;padding:12px 25px;
+  border-radius:25px;font-size:1rem;width:100%;
+  font-weight:600;box-shadow:0 4px 15px rgba(76,175,80,0.3);
+}
+.dance-card button:hover{
+  background:linear-gradient(45deg,#388e3c,#4caf50);
+  transform:translateY(-2px);
+  box-shadow:0 6px 20px rgba(76,175,80,0.4);
+}
+
+/* Individual Dance Page */
+#danceDetailPage{padding:20px;}
+.dance-header{text-align:center;margin-bottom:30px;}
+.dance-header h1{
+  font-size:3rem;margin-bottom:15px;
+  text-shadow:3px 3px 10px rgba(0,0,0,0.9);
+  color:#fff;font-weight:700;
+}
+.dance-header p{
+  font-size:1.3rem;opacity:0.95;color:#fff;
+  text-shadow:2px 2px 6px rgba(0,0,0,0.8);
+}
+.video-section{
+  max-width:900px;margin:0 auto 40px;text-align:center;
+}
+.video-section video{
+  width:100%;height:450px;border-radius:20px;
+  border:3px solid rgba(255,255,255,0.3);
+  box-shadow:0 10px 30px rgba(0,0,0,0.4);
+}
+.benefits-section{
+  background:linear-gradient(135deg,rgba(255,255,255,0.2),rgba(255,255,255,0.1));
+  backdrop-filter:blur(15px);border-radius:20px;padding:30px;
+  margin:0 auto 40px;max-width:900px;
+  border:1px solid rgba(255,255,255,0.3);
+  box-shadow:0 10px 30px rgba(0,0,0,0.3);
+}
+.benefits-section h3{
+  margin-bottom:20px;font-size:1.8rem;color:#ff5722;
+  text-align:center;font-weight:600;
+}
+.benefits-list{list-style:none;}
+.benefits-list li{
+  margin-bottom:10px;font-size:1.2rem;
+  line-height:1.5;color:#fff;text-shadow:1px 1px 3px rgba(0,0,0,0.7);
+}
+
+/* Teachers Section */
+.teachers-section{
+  max-width:900px;margin:0 auto 40px;text-align:center;
+}
+.teacher-card{
+  background:linear-gradient(135deg,rgba(255,255,255,0.2),rgba(255,255,255,0.1));
+  backdrop-filter:blur(15px);border-radius:20px;padding:20px;margin:15px auto;
+  border:1px solid rgba(255,255,255,0.3);
+  box-shadow:0 8px 25px rgba(0,0,0,0.3);
+}
+.teacher-card img{
+  width:100px;height:100px;border-radius:50%;margin-bottom:10px;
+  border:2px solid rgba(255,255,255,0.3);
+}
+.teacher-card h4{color:#ff5722;margin-bottom:5px;}
+.teacher-card p{opacity:0.9;color:#fff;}
+
+/* Booking Modal */
+#bookingModal .modal-content input,
+#bookingModal .modal-content select{
+  color:#fff;background:rgba(255,255,255,0.1);border-radius:10px;padding:10px;margin:8px 0;border:1px solid rgba(255,255,255,0.2);
+}
+
+/* Responsive */
+@media(max-width:768px){
+  #firstPage h1{font-size:3rem;}
+  #dancePage h1,#danceDetailPage .dance-header h1{font-size:2.5rem;}
+  .video-section video{height:300px;}
+}
+</style>
+</head>
+<body>
+
+<!-- First Page -->
+<div id="firstPage" class="page active">
+  <img src="image1.jpeg" alt="Background" class="page-bg">
+  <h1>Welcome to Dance Learning Platform</h1>
+  <div class="top-right">
+    <button onclick="showModal('loginModal')">Login</button>
+    <button onclick="showModal('signupModal')">Sign Up</button>
+  </div>
+</div>
+
+<!-- Login Modal -->
+<div id="loginModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal('loginModal')">&times;</span>
+    <h2>Login</h2>
+    <input type="email" id="loginEmail" placeholder="Email" required>
+    <input type="password" id="loginPassword" placeholder="Password" required>
+    <p class="forgot" onclick="forgotPassword()">Forgot Password?</p>
+    <button onclick="login()">Login</button>
+  </div>
+</div>
+
+<!-- Sign Up Modal -->
+<div id="signupModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal('signupModal')">&times;</span>
+    <h2>Sign Up</h2>
+    <input type="text" id="signupName" placeholder="Full Name" required>
+    <input type="email" id="signupEmail" placeholder="Email" required>
+    <input type="tel" id="signupPhone" placeholder="Phone Number" required>
+    <input type="text" id="signupWhatsapp" placeholder="WhatsApp Number" required>
+    <select id="signupGender">
+      <option value="">Select Gender</option>
+      <option value="male">Male</option>
+      <option value="female">Female</option>
+      <option value="other">Other</option>
+    </select>
+    <input type="password" id="signupPassword" placeholder="Password" required>
+    <button onclick="signup()">Sign Up</button>
+  </div>
+</div>
+
+<!-- Dance List Page -->
+<div id="dancePage" class="page">
+  <h1>Our Dance Courses</h1>
+  <div class="dance-grid" id="danceGrid"></div>
+</div>
+
+<!-- Dance Detail Page -->
+<div id="danceDetailPage" class="page">
+  <div class="dance-header">
+    <h1 id="danceTitle"></h1>
+    <p id="danceDescription"></p>
+  </div>
+  <div class="video-section" id="videoSection"></div>
+  <div class="benefits-section">
+    <h3>Benefits</h3>
+    <ul class="benefits-list" id="benefitsList"></ul>
+  </div>
+  <div class="teachers-section" id="teachersSection"></div>
+  <div style="text-align:center;margin-bottom:30px;">
+    <button onclick="bookSession()">Book Session</button>
+    <button onclick="goBackToDanceList()">Back to Courses</button>
+  </div>
+</div>
+
+<!-- Booking Modal -->
+<div id="bookingModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal('bookingModal')">&times;</span>
+    <h2>Book Your Session</h2>
+    <p id="bookingDanceName" style="text-align:center;font-weight:600;margin-bottom:15px;"></p>
+    <label for="bookingDate">Select Date:</label>
+    <input type="date" id="bookingDate" required>
+
+    <label for="bookingTime">Select Time Slot:</label>
+    <select id="bookingTime" required>
+      <option value="">--Select Time--</option>
+      <option value="10:00 AM">10:00 AM</option>
+      <option value="12:00 PM">12:00 PM</option>
+      <option value="2:00 PM">2:00 PM</option>
+      <option value="4:00 PM">4:00 PM</option>
+      <option value="6:00 PM">6:00 PM</option>
+    </select>
+
+    <label for="availableSlots">Available Slots:</label>
+    <select id="availableSlots" required>
+      <option value="">--Select Slot--</option>
+      <option value="1">1 Person</option>
+      <option value="2">2 Persons</option>
+      <option value="3">3 Persons</option>
+      <option value="4">4 Persons</option>
+    </select>
+
+    <button onclick="confirmBooking()">Confirm Booking</button>
+  </div>
+</div>
+
+<script>
+// Modal Functions
+function showModal(id){document.getElementById(id).style.display='flex';}
+function closeModal(id){document.getElementById(id).style.display='none';}
+function forgotPassword(){alert('Password reset link sent to your email!');}
+
+// Dummy Signup/Login
+function signup(){alert('Sign Up Successful!'); closeModal('signupModal'); showDancePage();}
+function login(){alert('Login Successful!'); closeModal('loginModal'); showDancePage();}
+function showDancePage(){document.getElementById('firstPage').classList.remove('active'); document.getElementById('dancePage').classList.add('active');}
+
+// Dance Data with local videos
+const danceData = {
+  'Kuchipudi': { video: '<video width="100%" height="450" controls><source src="video.mp4" type="video/mp4"></video>', description: 'Classical Indian dance from Andhra Pradesh known for its graceful movements and storytelling.', benefits: ['Improve flexibility','Enhance coordination','Cultural learning','Build confidence'], teachers: [{name:'Rama Krishna',img:'teacher2.jpg',desc:'Expert in Kuchipudi with 15 years experience'}] },
+  'Bharatanatyam': { video: '<video width="100%" height="450" controls><source src="video2.mp4" type="video/mp4"></video>', description: 'Ancient classical dance form from Tamil Nadu with precise movements and expressions.', benefits: ['Strengthen body','Enhance expressions','Discipline & focus','Cultural appreciation'], teachers: [{name:'Sita Devi',img:'teacher4.jpg',desc:'Renowned Bharatanatyam performer and teacher'}] },
+  'Folk': { video: '<video width="100%" height="450" controls><source src="video4.mp4" type="video/mp4"></video>', description: 'Traditional regional dances celebrating local culture and festivities.', benefits: ['Fun & energetic','Team spirit','Cultural knowledge','Stress relief'], teachers: [{name:'Vikram',img:'teacher3.jpg',desc:'Folk dance trainer with 10+ years experience'}] },
+  'Western': { video: '<video width="100%" height="450" controls><source src="video3.mp4" type="video/mp4"></video>', description: 'Contemporary dance styles including jazz, contemporary, and modern dance.', benefits: ['Express creativity','Improve stamina','Social interaction','Confidence building'], teachers: [{name:'Lisa',img:'teacher1.jpg',desc:'Professional Western dance choreographer'}] },
+  'Kathak': { video: '<video width="100%" height="450" controls><source src="video5.mp4" type="video/mp4"></video>', description: 'North Indian classical dance known for spins, footwork, and storytelling.', benefits: ['Rhythmic skills','Expression enhancement','Cultural understanding','Memory improvement'], teachers: [{name:'Rahul',img:'teacher5.jpg',desc:'Kathak exponent with 12 years teaching experience'}] },
+  'Odissi': { video: '<video width="100%" height="450" controls><source src="video6.mp4" type="video/mp4"></video>', description: 'Classical dance from Odisha with fluid movements and devotional themes.', benefits: ['Graceful movements','Spiritual connection','Flexibility','Focus improvement'], teachers: [{name:'Anjali',img:'teacher6.jpg',desc:'Odissi expert and performer'}] },
+  'Salsa': { video: '<video width="100%" height="450" controls><source src="video7.mp4" type="video/mp4"></video>', description: 'Energetic Latin dance with passionate movements and partner interaction.', benefits: ['Cardio fitness','Coordination','Social skills','Fun & entertainment'], teachers: [{name:'Carlos',img:'teacher8.jpg',desc:'Professional Salsa dancer and coach'}] },
+  'Teenamar': { video: '<video width="100%" height="450" controls><source src="video9.mp4" type="video/mp4"></video>', description: 'High-energy Telugu folk dance with vibrant movements and music.', benefits: ['Endurance','Teamwork','Cultural heritage','Joy & celebration'], teachers: [{name:'Raju',img:'teacher9.jpg',desc:'Expert in Teenamar folk dance'}] },
+  'Hip-hop': { video: '<video width="100%" height="450" controls><source src="video8.mp4" type="video/mp4"></video>', description: 'Urban dance style with street culture roots and dynamic movements.', benefits: ['Strength','Style & flair','Coordination','Expression & confidence'], teachers: [{name:'Jay',img:'teacher7.jpg',desc:'Hip-hop dance instructor with 8 years experience'}] }
+};
+
+// Populate Dance Grid
+const danceGrid = document.getElementById('danceGrid');
+for(const dance in danceData){
+  const card = document.createElement('div'); card.className='dance-card';
+  card.innerHTML=`<h3>${dance}</h3><p>${danceData[dance].description}</p>
+  <button onclick="showDanceDetail('${dance}')">Learn More</button>`;
+  danceGrid.appendChild(card);
+}
+
+// Show Dance Detail
+function showDanceDetail(dance){
+  document.getElementById('dancePage').classList.remove('active');
+  document.getElementById('danceDetailPage').classList.add('active');
+  const data=danceData[dance];
+  document.getElementById('danceTitle').innerText=dance;
+  document.getElementById('danceDescription').innerText=data.description;
+  document.getElementById('videoSection').innerHTML=data.video;
+
+  // Benefits
+  const benefitsList = document.getElementById('benefitsList');
+  benefitsList.innerHTML='';
+  data.benefits.forEach(b=>{const li=document.createElement('li');li.innerText=b;benefitsList.appendChild(li);});
+
+  // Teachers
+  const teachersSection=document.getElementById('teachersSection');
+  teachersSection.innerHTML='';
+  data.teachers.forEach(t=>{
+    const div=document.createElement('div');div.className='teacher-card';
+    div.innerHTML=`<img src="${t.img}" alt="${t.name}"><h4>${t.name}</h4><p>${t.desc}</p>`;
+    teachersSection.appendChild(div);
+  });
+}
+
+// Book Session
+function bookSession(){
+  const danceName = document.getElementById('danceTitle').innerText;
+  document.getElementById('bookingDanceName').innerText = danceName;
+  document.getElementById('bookingDate').value = '';
+  document.getElementById('bookingTime').value = '';
+  document.getElementById('availableSlots').value = '';
+  showModal('bookingModal');
+}
+
+// Confirm Booking
+function confirmBooking(){
+  const dance = document.getElementById('bookingDanceName').innerText;
+  const date = document.getElementById('bookingDate').value;
+  const time = document.getElementById('bookingTime').value;
+  const slot = document.getElementById('availableSlots').value;
+
+  if(!date || !time || !slot){
+    alert('Please select date, time, and slot!');
+    return;
+  }
+
+  alert(`Your session for ${dance} is booked on ${date} at ${time} for ${slot} slot(s)!`);
+  closeModal('bookingModal');
+}
+
+// Back to Dance List
+function goBackToDanceList(){
+  document.getElementById('danceDetailPage').classList.remove('active');
+  document.getElementById('dancePage').classList.add('active');
+}
+</script>
+</body>
+</html>
